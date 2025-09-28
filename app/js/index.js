@@ -3,6 +3,7 @@ let currentDay = 1;
 let history = [];
 let lastCompletion = null;
 let points = 0;
+let badges = []; // badges conquistadas
 
 const tasks = [
   "Escreva 3 coisas pelas quais você é grato.",
@@ -37,20 +38,28 @@ function login() {
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("userName").innerText = username;
 
+  // Carrega dados do localStorage
   const savedDay = localStorage.getItem(username + "_day");
   const savedHistory = localStorage.getItem(username + "_history");
   const savedDate = localStorage.getItem(username + "_lastDate");
   const savedPoints = localStorage.getItem(username + "_points");
+  const savedBadges = localStorage.getItem(username + "_badges");
 
   currentDay = savedDay ? parseInt(savedDay) : 1;
   history = savedHistory ? JSON.parse(savedHistory) : [];
   lastCompletion = savedDate ? new Date(savedDate).toDateString() : null;
   points = savedPoints ? parseInt(savedPoints) : 0;
+  badges = savedBadges ? JSON.parse(savedBadges) : [];
 
   document.getElementById("pointsDisplay").innerText = `🏆 Pontos: ${points}`;
+  renderBadges();
+
   checkDailyLock();
   renderDays();
   updateTask();
+  updateHistory();
+  updateProgress();
+  updateAchievements();
   notifyDailyTask();
 }
 
@@ -78,11 +87,10 @@ function completeDay() {
   }
 
   if (currentDay !== 1 && lastCompletion !== yesterdayStr) {
-    showToast("⏳ Você ainda não completou o dia anterior. Complete os dias na ordem!");
+    showToast("⏳ Complete os dias anteriores primeiro!");
     return;
   }
 
-  // Concluir tarefa do dia
   const todayTask = tasks[currentDay - 1];
   history.push({ task: todayTask, note: "" });
   localStorage.setItem(username + "_history", JSON.stringify(history));
@@ -94,15 +102,16 @@ function completeDay() {
   localStorage.setItem(username + "_day", currentDay);
 
   addPoints(10); // Pontos por dia concluído
+  checkBadgeUnlock(); // Verifica se desbloqueou badge
+
+  // Atualizações em tempo real
   updateTask();
   updateProgress();
   updateAchievements();
   updateHistory();
-  checkDailyLock();
   renderDays();
 
   showToast(`🎉 Tarefa do dia ${currentDay - 1} concluída!`);
-
   if (currentDay === 21) document.getElementById("downloadCertBtn").style.display = "inline-block";
 }
 
@@ -113,7 +122,7 @@ function checkDailyLock() {
 
   if (lastCompletion === today) {
     completeBtn.disabled = false;
-    completeBtn.onclick = () => showToast("⏳ Você já completou o dia de hoje. Aguarde o próximo dia!");
+    completeBtn.onclick = () => showToast("⏳ Já completou o dia de hoje!");
     completeBtn.innerText = "Concluir Dia ✅";
   } else {
     const yesterday = new Date();
@@ -126,7 +135,7 @@ function checkDailyLock() {
       completeBtn.innerText = "Concluir Dia ✅";
     } else {
       completeBtn.disabled = false;
-      completeBtn.onclick = () => showToast("⏳ Ainda não chegou o dia certo para continuar!");
+      completeBtn.onclick = () => showToast("⏳ Dia não disponível ainda!");
       completeBtn.innerText = "Aguarde o dia certo ⏳";
     }
   }
@@ -178,9 +187,13 @@ function updateHistory() {
 function saveNote() {
   const noteInput = document.getElementById("noteInput").value.trim();
   if (!noteInput) return showToast("Digite algo antes de salvar!");
-  history[currentDay - 2].note = noteInput; // adiciona nota ao dia concluído
+  
+  const lastIndex = history.length - 1;
+  if(lastIndex < 0) return showToast("Nenhum dia concluído para adicionar nota!");
+
+  history[lastIndex].note = noteInput;
   localStorage.setItem(username + "_history", JSON.stringify(history));
-  updateHistory();
+  updateHistory(); // Atualiza em tempo real
   document.getElementById("noteInput").value = "";
   showToast("📝 Reflexão salva!");
 }
@@ -190,6 +203,38 @@ function addPoints(amount) {
   points += amount;
   localStorage.setItem(username + "_points", points);
   document.getElementById("pointsDisplay").innerText = `🏆 Pontos: ${points}`;
+}
+
+// --- Desbloquear badges ---
+function checkBadgeUnlock() {
+  const badgeContainer = document.getElementById("badgesContainer");
+
+  const thresholds = [
+    { points: 30, name: "🥉 Bronze" },
+    { points: 70, name: "🥈 Prata" },
+    { points: 140, name: "🏅 Ouro" },
+    { points: 210, name: "🌟 Platina" }
+  ];
+
+  thresholds.forEach(b => {
+    if(points >= b.points && !badges.includes(b.name)) {
+      badges.push(b.name);
+      localStorage.setItem(username + "_badges", JSON.stringify(badges));
+      showToast(`🏆 Badge desbloqueado: ${b.name}!`);
+      renderBadges();
+    }
+  });
+}
+
+function renderBadges() {
+  const container = document.getElementById("badgesContainer");
+  container.innerHTML = "";
+  badges.forEach(b => {
+    const span = document.createElement("span");
+    span.className = "badge";
+    span.innerText = b;
+    container.appendChild(span);
+  });
 }
 
 // --- Render dias ---
@@ -206,26 +251,16 @@ function renderDays() {
     const dayBox = document.createElement("div");
     dayBox.className = "day-box";
 
-    if (i + 1 < currentDay) {
-      dayBox.classList.add("completed");
-    } else if (i + 1 === currentDay) {
-      dayBox.classList.add("current");
-    } else {
-      dayBox.classList.add("locked");
-    }
+    if (i + 1 < currentDay) dayBox.classList.add("completed");
+    else if (i + 1 === currentDay) dayBox.classList.add("current");
+    else dayBox.classList.add("locked");
 
     dayBox.innerText = i + 1;
-
     dayBox.onclick = () => {
-      if (i + 1 === currentDay) {
-        showToast(`🌟 O dia ${currentDay} do desafio está disponível! Conclua a tarefa.`);
-      } else if (i + 1 < currentDay) {
-        showToast(`✅ Você já completou o dia ${i + 1}!`);
-      } else {
-        showToast(`⏳ Ainda não chegou o dia ${i + 1}. Complete os dias anteriores primeiro.`);
-      }
+      if (i + 1 === currentDay) showToast(`🌟 Dia ${currentDay} disponível!`);
+      else if (i + 1 < currentDay) showToast(`✅ Já completou o dia ${i + 1}!`);
+      else showToast(`⏳ Dia ${i + 1} bloqueado.`);
     };
-
     container.appendChild(dayBox);
   }
 }
@@ -245,9 +280,7 @@ function showToast(message) {
 // --- Notificação diária ---
 function notifyDailyTask() {
   const today = new Date().toDateString();
-  if (lastCompletion !== today) {
-    showToast(`🌟 O dia ${currentDay} do desafio está disponível!`);
-  }
+  if (lastCompletion !== today) showToast(`🌟 Dia ${currentDay} disponível!`);
 }
 
 // --- Compartilhar progresso ---
