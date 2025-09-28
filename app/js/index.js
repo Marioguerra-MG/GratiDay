@@ -63,7 +63,6 @@ function initUserData() {
 function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
-
   if (!pwaInstalled) {
     showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
     return;
@@ -302,27 +301,34 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 installBtn.addEventListener("click", async () => {
-  if (deferredPrompt) {
-    loadingOverlay.style.display = "flex"; // mostra overlay
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    loadingOverlay.style.display = "none"; // oculta overlay
+  if (!deferredPrompt) return;
+  loadingOverlay.style.display = "flex";
 
-    if (choice.outcome === "accepted") {
-      pwaInstalled = true;
-      installBanner.style.display = "none";
-      showToast("🎉 Obrigado por instalar!");
-    } else {
-      showToast("ℹ️ Instalação cancelada.");
-    }
-    deferredPrompt = null;
+  deferredPrompt.prompt();
+  const choice = await deferredPrompt.userChoice;
+  loadingOverlay.style.display = "none";
+
+  if (choice.outcome === "accepted") {
+    pwaInstalled = true;
+    installBanner.style.display = "none";
+    showToast("🎉 Obrigado por instalar!");
+  } else {
+    showToast("ℹ️ Instalação cancelada.");
   }
+  deferredPrompt = null;
 });
 
+// Detecta instalação completa
 window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   installBanner.style.display = "none";
   showToast("✅ GratiDay instalado com sucesso!");
+});
+
+// --- Dashboard bloqueado até instalação ---
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("login").style.display = "block";
 });
 
 // --- Service Worker ---
