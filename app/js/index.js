@@ -19,6 +19,22 @@ loadingOverlay.style.cssText = `
 loadingOverlay.innerText = "⏳ Instalando GratiDay...";
 document.body.appendChild(loadingOverlay);
 
+// --- Banner de instalação ---
+const installBanner = document.createElement("div");
+installBanner.id = "install-banner";
+installBanner.style.cssText = `
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #4CAF50; color: white; padding: 15px;
+  text-align: center; font-weight: bold; font-size: 16px; z-index:1000;
+  display: none;
+`;
+installBanner.innerHTML = `📲 Instale o GratiDay para desbloquear o app!
+  <button id="install-btn" style="margin-left:10px;padding:5px 10px;font-weight:bold;border-radius:6px;cursor:pointer;">👉 Instalar</button>`;
+document.body.appendChild(installBanner);
+
+const installBtn = document.getElementById("install-btn");
+let deferredPrompt;
+
 // --- Tasks ---
 const tasks = [
   "Escreva 3 coisas pelas quais você é grato.",
@@ -64,11 +80,11 @@ function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
   if (!pwaInstalled) {
-    showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
+    showToast("📲 Instale o GratiDay para desbloquear o app!");
     return;
   }
 
-  document.getElementById("login").style.display = "none";
+  document.getElementById("login").style.display = "block";
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("userName").innerText = username;
 
@@ -279,21 +295,6 @@ function shareProgress() {
 }
 
 // --- PWA / Instalação ---
-let deferredPrompt;
-const installBanner = document.createElement("div");
-installBanner.id = "install-banner";
-installBanner.style.cssText = `
-  position: fixed; top: 0; left: 0; right: 0;
-  background: #4CAF50; color: white; padding: 15px;
-  text-align: center; font-weight: bold; font-size: 16px; z-index:1000;
-  display: none;
-`;
-installBanner.innerHTML = `📲 Instale o GratiDay para desbloquear o dashboard!
-  <button id="install-btn" style="margin-left:10px;padding:5px 10px;font-weight:bold;border-radius:6px;cursor:pointer;">👉 Instalar</button>`;
-document.body.appendChild(installBanner);
-
-const installBtn = document.getElementById("install-btn");
-
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -303,7 +304,6 @@ window.addEventListener("beforeinstallprompt", (e) => {
 installBtn.addEventListener("click", async () => {
   if (!deferredPrompt) return;
   loadingOverlay.style.display = "flex";
-
   deferredPrompt.prompt();
   const choice = await deferredPrompt.userChoice;
   loadingOverlay.style.display = "none";
@@ -312,23 +312,24 @@ installBtn.addEventListener("click", async () => {
     pwaInstalled = true;
     installBanner.style.display = "none";
     showToast("🎉 Obrigado por instalar!");
+    document.getElementById("login").style.display = "block";
   } else {
     showToast("ℹ️ Instalação cancelada.");
   }
   deferredPrompt = null;
 });
 
-// Detecta instalação completa
 window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   installBanner.style.display = "none";
   showToast("✅ GratiDay instalado com sucesso!");
+  document.getElementById("login").style.display = "block";
 });
 
-// --- Dashboard bloqueado até instalação ---
+// --- Bloqueio inicial até instalar ---
 document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("login").style.display = "none";
   document.getElementById("dashboard").style.display = "none";
-  document.getElementById("login").style.display = "block";
 });
 
 // --- Service Worker ---
