@@ -3,7 +3,8 @@ let currentDay = 1;
 let history = [];
 let lastCompletion = null;
 let points = 0;
-let badges = []; 
+let badges = [];
+let pwaInstalled = false;
 
 const tasks = [
   "Escreva 3 coisas pelas quais você é grato.",
@@ -49,6 +50,12 @@ function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
 
+  // Só libera dashboard se app estiver instalado
+  if (!pwaInstalled) {
+    showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
+    return;
+  }
+
   document.getElementById("login").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
   document.getElementById("userName").innerText = username;
@@ -75,7 +82,7 @@ function completeDay() {
   yesterday.setDate(yesterday.getDate() - 1);
 
   if (lastCompletion === today) return showToast("⏳ Já completou o dia de hoje!");
-  if (currentDay !== 1 && lastCompletion !== yesterday.toDateString()) 
+  if (currentDay !== 1 && lastCompletion !== yesterday.toDateString())
     return showToast("⏳ Complete os dias anteriores primeiro!");
 
   history.push({ task: tasks[currentDay - 1], note: "" });
@@ -104,8 +111,7 @@ function saveData() {
 function checkDailyLock() {
   const today = new Date().toDateString();
   const completeBtn = document.getElementById("completeBtn");
-
-  if (!completeBtn) return; // proteção
+  if (!completeBtn) return;
 
   if (lastCompletion === today) {
     completeBtn.onclick = () => showToast("⏳ Já completou o dia de hoje!");
@@ -115,11 +121,11 @@ function checkDailyLock() {
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toDateString();
 
-    completeBtn.onclick = (currentDay === 1 || lastCompletion === yesterdayStr) 
-      ? completeDay 
+    completeBtn.onclick = (currentDay === 1 || lastCompletion === yesterdayStr)
+      ? completeDay
       : () => showToast("⏳ Dia não disponível ainda!");
-    completeBtn.innerText = (currentDay === 1 || lastCompletion === yesterdayStr) 
-      ? "Concluir Dia ✅" 
+    completeBtn.innerText = (currentDay === 1 || lastCompletion === yesterdayStr)
+      ? "Concluir Dia ✅"
       : "Aguarde o dia certo ⏳";
   }
 }
@@ -128,7 +134,7 @@ function checkDailyLock() {
 function updateTask() {
   const taskElem = document.getElementById("dayTask");
   if (!taskElem) return;
-  taskElem.innerText = (lastCompletion === new Date().toDateString()) 
+  taskElem.innerText = (lastCompletion === new Date().toDateString())
     ? "⏳ Aguarde o próximo dia para a nova tarefa!"
     : `Dia ${currentDay} - ${tasks[currentDay - 1]}`;
 }
@@ -219,19 +225,18 @@ function renderBadges() {
   });
 }
 
-// --- Render dias ---
 // --- Render dias (mostrar só 4 dias) ---
 function renderDays() {
   const container = document.getElementById("daysContainer");
   if (!container) return;
   container.innerHTML = "";
 
-  const totalDaysToShow = 4; // mostrar apenas os 4 primeiros dias
+  const totalDaysToShow = 4;
 
   for (let i = 0; i < totalDaysToShow; i++) {
     const dayBox = document.createElement("div");
     dayBox.className = "day-box";
-    
+
     if(i + 1 < currentDay) dayBox.classList.add("completed");
     else if(i + 1 === currentDay) dayBox.classList.add("current");
     else dayBox.classList.add("locked");
@@ -245,7 +250,6 @@ function renderDays() {
     container.appendChild(dayBox);
   }
 }
-
 
 // --- Toast ---
 function showToast(message) {
@@ -262,37 +266,51 @@ function shareProgress() {
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
 }
 
-// --- Instalação PWA (toast) ---
+// --- PWA / Instalação ---
 let deferredPrompt;
+const installBanner = document.createElement("div");
+installBanner.id = "install-banner";
+installBanner.style.cssText = `
+  position: fixed; top: 0; left: 0; right: 0;
+  background: #4CAF50; color: white; padding: 15px;
+  text-align: center; font-weight: bold; font-size: 16px; z-index:1000;
+  display: none;
+`;
+installBanner.innerHTML = `📲 Instale o GratiDay para desbloquear o dashboard!
+  <button id="install-btn" style="margin-left:10px;padding:5px 10px;font-weight:bold;border-radius:6px;cursor:pointer;">👉 Instalar</button>`;
+document.body.appendChild(installBanner);
+
+const installBtn = document.getElementById("install-btn");
 
 window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault(); // bloqueia o prompt automático
+  e.preventDefault();
   deferredPrompt = e;
-
-  showToast("📲 Instale o GratiDay no seu dispositivo!");
-
-  // Criar botão para instalar
-  const installBtn = document.createElement("button");
-  installBtn.innerText = "👉 Instalar Agora";
-  installBtn.className = "install-btn";
-  document.body.appendChild(installBtn);
-
-  installBtn.addEventListener("click", async () => {
-    installBtn.remove(); // remove botão após clicar
-    if (deferredPrompt) {
-      deferredPrompt.prompt(); // dispara o prompt nativo
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === "accepted") {
-        showToast("🎉 Obrigado por instalar!");
-      } else {
-        showToast("ℹ️ Instalação cancelada.");
-      }
-      deferredPrompt = null;
-    }
-  });
+  installBanner.style.display = "block";
 });
 
+installBtn.addEventListener("click", async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const choice = await deferredPrompt.userChoice;
+    if (choice.outcome === "accepted") {
+      pwaInstalled = true;
+      installBanner.style.display = "none";
+      showToast("🎉 Obrigado por instalar!");
+    } else {
+      showToast("ℹ️ Instalação cancelada.");
+    }
+    deferredPrompt = null;
+  }
+});
 
+// Detecta se já está instalada
+window.addEventListener("appinstalled", () => {
+  pwaInstalled = true;
+  installBanner.style.display = "none";
+  showToast("✅ GratiDay instalado com sucesso!");
+});
+
+// --- Service Worker ---
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js")
@@ -300,4 +318,3 @@ if ("serviceWorker" in navigator) {
       .catch(err => console.log("Falha ao registrar SW", err));
   });
 }
-
