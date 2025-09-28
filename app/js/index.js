@@ -290,7 +290,6 @@ installBanner.style.cssText = `
   display: none;
 `;
 installBanner.innerHTML = `📲 Instale o GratiDay para desbloquear o dashboard!
-  <p> 📲 Instale o GratiDay para uma experiência </p>
   <button id="install-btn" style="margin-left:10px;padding:5px 10px;font-weight:bold;border-radius:6px;cursor:pointer;">👉 Instalar para um esprecienca melhor</button>`;
 document.body.appendChild(installBanner);
 
