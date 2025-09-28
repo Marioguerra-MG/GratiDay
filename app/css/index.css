@@ -292,3 +292,24 @@ button:hover {
     font-size: 12px;
   }
 }
+
+.install-btn {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  animation: slideUp 0.5s ease;
+  z-index: 9999;
+}
+.install-btn:hover {
+  background: #43a047;
+}

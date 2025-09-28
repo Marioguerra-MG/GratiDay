@@ -262,6 +262,37 @@ function shareProgress() {
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
 }
 
+// --- Instalação PWA (toast) ---
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault(); // bloqueia o prompt automático
+  deferredPrompt = e;
+
+  showToast("📲 Instale o GratiDay no seu dispositivo!");
+
+  // Criar botão para instalar
+  const installBtn = document.createElement("button");
+  installBtn.innerText = "👉 Instalar Agora";
+  installBtn.className = "install-btn";
+  document.body.appendChild(installBtn);
+
+  installBtn.addEventListener("click", async () => {
+    installBtn.remove(); // remove botão após clicar
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); // dispara o prompt nativo
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        showToast("🎉 Obrigado por instalar!");
+      } else {
+        showToast("ℹ️ Instalação cancelada.");
+      }
+      deferredPrompt = null;
+    }
+  });
+});
+
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js")
