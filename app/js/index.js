@@ -64,8 +64,7 @@ function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
 
-  // só libera dashboard se o app estiver instalado ou rodando standalone
-  if (!pwaInstalled && !window.matchMedia('(display-mode: standalone)').matches) {
+  if (!pwaInstalled) {
     showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
     return;
   }
@@ -296,11 +295,20 @@ document.body.appendChild(installBanner);
 
 const installBtn = document.getElementById("install-btn");
 
-// Detecta se está rodando como PWA
+// Bloqueia dashboard até instalação
+function checkAppAccess() {
+  if (!pwaInstalled) {
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("login").style.display = "block";
+  }
+}
+
+// Detecta se está rodando como PWA (standalone)
 if (window.matchMedia('(display-mode: standalone)').matches) {
   pwaInstalled = true;
   installBanner.style.display = "none";
 }
+checkAppAccess();
 
 // Evento de beforeinstallprompt
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -324,6 +332,7 @@ installBtn.addEventListener("click", async () => {
     } else {
       showToast("ℹ️ Instalação cancelada.");
     }
+    checkAppAccess();
     deferredPrompt = null;
   }
 });
@@ -333,6 +342,7 @@ window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   installBanner.style.display = "none";
   showToast("✅ GratiDay instalado com sucesso!");
+  checkAppAccess();
 });
 
 // --- Service Worker ---
