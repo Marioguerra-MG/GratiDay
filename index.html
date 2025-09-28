@@ -21,9 +21,8 @@
       <h2>Olá, <span id="userName"></span> 👋</h2>
 
       <div id="challengeSection">
-        <button onclick="startChallenge()">Iniciar Desafio Gratidão</button>
-
-        <div id="challenge" style="display:none;">
+        <!-- Botão removido porque login já inicia -->
+        <div id="challenge" style="display:block;">
           <div id="daysContainer" class="days-container"></div>
           <div id="dayCard">
             <h3 id="dayTask"></h3>
@@ -45,14 +44,13 @@
             <ul id="historyList"></ul>
           </div>
 
-          <button id="downloadCertBtn" style="display:none;" onclick="downloadCertificate()">🎉 Baixar Certificado</button>
+          <!-- Badge container -->
+          <div id="badgesContainer"></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- JS PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="/app/js/index.js"></script>
 </body>
 </html>
