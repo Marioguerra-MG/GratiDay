@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GratiDay</title>
+  <link rel="stylesheet" href="/app/css/index.css">
+</head>
+<body>
+  <div id="app">
+    <h1>Desafio 21 Dias</h1>
+
+    <!-- LOGIN -->
+    <div id="login">
+      <input type="text" id="username" placeholder="Digite seu nome">
+      <button onclick="login()">Começar</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" style="display:none;">
+      <h2>Olá, <span id="userName"></span> 👋</h2>
+
+      <div id="challengeSection">
+        <button onclick="startChallenge()">Iniciar Desafio Gratidão</button>
+
+        <div id="challenge" style="display:none;">
+          <div id="daysContainer" class="days-container"></div>
+          <div id="dayCard">
+            <h3 id="dayTask"></h3>
+            <button id="completeBtn" onclick="completeDay()">Concluir Dia ✅</button>
+          </div>
+
+          <div class="progress-circle">
+            <svg>
+              <circle cx="60" cy="60" r="54"></circle>
+              <circle id="progressCircle" cx="60" cy="60" r="54"></circle>
+            </svg>
+            <div id="progressTextCircle">0%</div>
+          </div>
+
+          <div id="achievements"></div>
+
+          <div id="historySection">
+            <h4>Histórico:</h4>
+            <ul id="historyList"></ul>
+          </div>
+
+          <button id="downloadCertBtn" style="display:none;" onclick="downloadCertificate()">🎉 Baixar Certificado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="/app/js/index.js"></script>
+</body>
+</html>
