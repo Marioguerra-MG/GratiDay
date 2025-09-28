@@ -261,3 +261,12 @@ function shareProgress() {
   const message = `Hoje completei o desafio do dia ${currentDay - 1}! 🌟 #Desafio21Dias`;
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
 }
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(reg => console.log("Service Worker registrado!", reg))
+      .catch(err => console.log("Falha ao registrar SW", err));
+  });
+}
+
