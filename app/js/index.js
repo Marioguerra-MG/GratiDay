@@ -6,6 +6,20 @@ let points = 0;
 let badges = [];
 let pwaInstalled = false;
 
+// --- Overlay de carregando ---
+const loadingOverlay = document.createElement("div");
+loadingOverlay.id = "loadingOverlay";
+loadingOverlay.style.cssText = `
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.7); color: white;
+  display: flex; justify-content:center; align-items:center;
+  font-size: 22px; font-weight:bold; z-index: 9999;
+  display: none;
+`;
+loadingOverlay.innerText = "⏳ Instalando GratiDay...";
+document.body.appendChild(loadingOverlay);
+
+// --- Tasks ---
 const tasks = [
   "Escreva 3 coisas pelas quais você é grato.",
   "Faça 5 respirações profundas e reflita sobre o dia.",
@@ -50,7 +64,6 @@ function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
 
-  // Só libera dashboard se app estiver instalado
   if (!pwaInstalled) {
     showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
     return;
@@ -290,8 +303,11 @@ window.addEventListener("beforeinstallprompt", (e) => {
 
 installBtn.addEventListener("click", async () => {
   if (deferredPrompt) {
+    loadingOverlay.style.display = "flex"; // mostra overlay
     deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
+    loadingOverlay.style.display = "none"; // oculta overlay
+
     if (choice.outcome === "accepted") {
       pwaInstalled = true;
       installBanner.style.display = "none";
@@ -303,7 +319,6 @@ installBtn.addEventListener("click", async () => {
   }
 });
 
-// Detecta se já está instalada
 window.addEventListener("appinstalled", () => {
   pwaInstalled = true;
   installBanner.style.display = "none";
