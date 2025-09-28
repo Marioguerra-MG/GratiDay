@@ -328,11 +328,17 @@ installBtn.addEventListener("click", async () => {
     if (choice.outcome === "accepted") {
       pwaInstalled = true;
       installBanner.style.display = "none";
-      showToast("🎉 Obrigado por instalar!");
+      showToast("🎉 Obrigado por instalar! Aguarde a tela inicial...");
+
+      // Delay de 60 segundos antes de liberar dashboard
+      setTimeout(() => {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        showToast(`🎉 Bem-vindo, ${username}!`);
+      }, 60000); // 60000ms = 60 segundos
     } else {
       showToast("ℹ️ Instalação cancelada.");
     }
-    checkAppAccess();
     deferredPrompt = null;
   }
 });
