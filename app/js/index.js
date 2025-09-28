@@ -262,27 +262,69 @@ function shareProgress() {
   window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
 }
 
-// --- Instalação PWA (toast) ---
+// --- Instalação PWA (barra fixa no topo) ---
 let deferredPrompt;
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault(); // bloqueia o prompt automático
   deferredPrompt = e;
 
-  showToast("📲 Instale o GratiDay no seu dispositivo!");
+  // Criar barra fixa no topo
+  const bar = document.createElement("div");
+  bar.id = "installBar";
+  bar.innerHTML = `
+    <div class="install-content">
+      <span>🚀 Instale o <b>GratiDay</b> no seu dispositivo para ter a melhor experiência!</span>
+      <button id="installBtn">👉 Instalar</button>
+    </div>
+  `;
+  document.body.prepend(bar);
 
-  // Criar botão para instalar
-  const installBtn = document.createElement("button");
-  installBtn.innerText = "👉 Instalar Agora";
-  installBtn.className = "install-btn";
-  document.body.appendChild(installBtn);
+  // Estilo básico
+  const style = document.createElement("style");
+  style.innerHTML = `
+    #installBar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #4CAF50;
+      color: white;
+      font-family: sans-serif;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    #installBar .install-content {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    #installBar button {
+      background: white;
+      color: #4CAF50;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #installBar button:hover {
+      background: #f1f1f1;
+    }
+  `;
+  document.head.appendChild(style);
 
-  installBtn.addEventListener("click", async () => {
-    installBtn.remove(); // remove botão após clicar
+  // Ação do botão instalar
+  document.getElementById("installBtn").addEventListener("click", async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt(); // dispara o prompt nativo
       const choice = await deferredPrompt.userChoice;
       if (choice.outcome === "accepted") {
+        document.getElementById("installBar").remove(); // remove barra
         showToast("🎉 Obrigado por instalar!");
       } else {
         showToast("ℹ️ Instalação cancelada.");
@@ -291,6 +333,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
     }
   });
 });
+
 
 
 if ("serviceWorker" in navigator) {
