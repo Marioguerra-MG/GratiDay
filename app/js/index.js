@@ -380,3 +380,33 @@ if ("serviceWorker" in navigator) {
       .catch(err => console.log("Falha ao registrar SW", err));
   });
 }
+
+
+// Atualiza SW automaticamente
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(reg => {
+        console.log("Service Worker registrado!", reg);
+        // Forçar atualização quando muda versão
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              if (navigator.serviceWorker.controller) {
+                console.log("Nova versão disponível! Recarregando...");
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
+      .catch(err => console.log("Falha ao registrar SW", err));
+  });
+}
+
+// Mensagem do SW para forçar skipWaiting
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  console.log("SW ativo e assumiu controle.");
+});
