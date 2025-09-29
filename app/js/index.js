@@ -63,6 +63,7 @@ function initUserData() {
 function login() {
   username = document.getElementById("username").value.trim();
   if (!username) return showToast("⚠️ Digite seu nome!");
+  localStorage.setItem("gratiday_username", username); // salva o nome
 
   if (!pwaInstalled) {
     showToast("📲 Instale o GratiDay para desbloquear o dashboard!");
@@ -75,6 +76,12 @@ function login() {
 
   initUserData();
   updateAllUI();
+}
+
+// --- Logout (opcional) ---
+function logout() {
+  localStorage.removeItem("gratiday_username");
+  location.reload();
 }
 
 // --- Atualiza UI ---
@@ -303,6 +310,20 @@ function checkAppAccess() {
   }
 }
 
+// Detecta se já tem usuário salvo e loga automaticamente
+const savedUser = localStorage.getItem("gratiday_username");
+if (savedUser) {
+  username = savedUser;
+  pwaInstalled = window.matchMedia('(display-mode: standalone)').matches;
+  initUserData();
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("userName").innerText = username;
+    updateAllUI();
+  });
+}
+
 // Detecta se está rodando como PWA (standalone)
 if (window.matchMedia('(display-mode: standalone)').matches) {
   pwaInstalled = true;
@@ -335,7 +356,7 @@ installBtn.addEventListener("click", async () => {
         document.getElementById("login").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
         showToast(`🎉 Bem-vindo, ${username}!`);
-      }, 60000); // 60000ms = 60 segundos
+      }, 60000);
     } else {
       showToast("ℹ️ Instalação cancelada.");
     }
